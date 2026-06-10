@@ -1,4 +1,4 @@
-# 🐟 Dory
+# Dory 🐟 
 
 *An append-only changelog convention that gives your AI the memory it doesn't have.*
 
@@ -29,16 +29,16 @@ No structured format to memorise. No tooling to install. Works with any model, a
 
 ---
 
-## The file
+## Get started
+
+Create `CHANGELOG.md` in your repo root:
 
 ```markdown
 # Project Changelog
 <!-- Append-only. One line per entry. No headings or blank lines. -->
 ```
 
-Copy this header into a file called `CHANGELOG.md` at your repo root and start writing. Git tracks it automatically alongside your code.
-
-Bold and inline code are fine.
+Git tracks it automatically. Bold and inline code are fine.
 
 ---
 
