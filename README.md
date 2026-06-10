@@ -48,53 +48,17 @@ Drop `CHANGELOG.md` into the context window at the start of a session. To write,
 
 > Update the changelog. No headings, no blank lines.
 
+For a model switch or a fresh session after a long gap:
+
+> Read the changelog and tell me where we are.
+
+If you're using Claude, copy `SKILL.md` into your project instructions to set the behaviour once for all sessions.
+
 ---
 
 ## Examples
 
-### Automation project
-
-```markdown
-# Project Changelog
-<!-- Append-only. One line per entry. No headings or blank lines. -->
-
-Architecture settled — single `run.py` with five sequential phases; `state.json` as sole persistence layer
-Scan filters added — head-to-head regex, slug blacklist, volume floor, no settled markets
-Crash recovery implemented — marks pending entries as placed if already held on sync
-Settlement detection via price thresholds; wins trigger FOK sell, losses marked without sell attempt
-Fix: in-progress entries bypassed entry window check due to clamped timestamp; explicit guard added
-Fix: double-entry guard missed matches when name parsing hit abbreviations; switched to slug-based key
-Stake reduced from 5% to 3% after ruin analysis on shuffled historical outcomes
-Fix: phantom cashouts — FOK sell success now validated before booking P&L
-```
-
-### Visualisation tool
-
-```markdown
-# Project Changelog
-<!-- Append-only. One line per entry. No headings or blank lines. -->
-
-Initial JS/HTML prototype; Dubins-Spanier ported from Python
-Selfridge-Conway and Even-Paz implemented; `common.js` extracted for shared functions
-Cut-and-choose added; chart initialisation bug fixed that caused incorrect render on first load
-Selfridge-Conway visualisation completed — stack trace, contiguous backgrounds, agent spacing tested to 12
-Playback controls added — play/pause and stop-at-end
-Dubins-Spanier reimplemented in JS with sliding knife animation and normalised layouts
-Polish pass — hover, label consistency, PDF title, doc links
-```
-
-### Research project
-
-```markdown
-# Project Changelog
-<!-- Append-only. One line per entry. No headings or blank lines. -->
-
-Initial structure — search parameters, citations, column selection rationale, language guide with bias classifications
-Systematic review writeup begun; pre-search process and extraction methodology documented
-experiment-data.csv v1 uploaded; v1.0.1 issued immediately to fix Molokken deduplication
-SQL revised to output resolution time instead of effort; filtering criteria clarified
-README restructured — repository layout overhauled, completion times corrected to proper units
-```
+See the [`examples/`](examples/) directory for real-world changelogs across different project types.
 
 ---
 
