@@ -6,6 +6,12 @@ Every new chat starts blind. You burned through a context window, switched model
 
 Dory fixes that with one file.
 
+
+
+Start writing. Git tracks it automatically.
+
+![Before and after](images/chatlog.png)
+
 ## Get started
 
 Create `CHANGELOG.md` in your repo root:
@@ -14,10 +20,6 @@ Create `CHANGELOG.md` in your repo root:
 # Project Changelog
 <!-- Append-only. One line per entry. No headings or blank lines. -->
 ```
-
-Start writing. Git tracks it automatically.
-
-![Before and after](images/chatlog.png)
 
 ```markdown
 # Project Changelog
