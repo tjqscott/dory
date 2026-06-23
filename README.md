@@ -1,6 +1,6 @@
-<p align="center">
+<center>  
   ![Dory](images/dory.png)
-</p>
+</center>
 
 <h1 align="center">Dory</h1>
 
