@@ -20,8 +20,6 @@
 
 ---
 
----
-
 Long, continuous chat threads are the enemy of productivity. They drain your token quota, dilute context, and leave your hard-won project state vulnerable to a single misclick.
 
 **Dory** turns hosted LLM interfaces into disposable, high-performance tools. By offloading state to your local environment and enforcing atomic, single-feature sessions, you keep your costs low and your workflow bulletproof.
