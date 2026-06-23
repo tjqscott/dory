@@ -1,9 +1,11 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="images/banner.png">
-    <img src="https://raw.githubusercontent.com/tjqscott/dory/refs/heads/main/images/dory.png" width="333" alt="Dory, the stateless memory manager">
+    <img src="images/dory.png" width="333" alt="Dory, the stateless memory manager">
   </picture>
 </p>
+
+[https://raw.githubusercontent.com/tjqscott/dory/refs/heads/main/images/dory.png](https://raw.githubusercontent.com/tjqscott/dory/refs/heads/main/images/dory.png)
 
 <h1 align="center">Dory</h1>
 
