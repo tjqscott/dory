@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/banner.png">
-    <img src="images/dory.png" width="333" alt="Dory, the stateless memory manager">
-  </picture>
+  ![Dory](images/dory.png)
 </p>
 
 <h1 align="center">Dory</h1>
