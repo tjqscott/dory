@@ -1,47 +1,46 @@
-# Dory 🐟
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="images/banner.png">
+    <img src="images/banner.png" width="220" alt="Dory, the stateless memory manager">
+  </picture>
+</p>
 
-Every new chat starts blind. You burn through a context window, switch models, or close a tab, and find yourself spending the first ten messages re-explaining your project state. 
+<h1 align="center">Dory</h1>
+
+<p align="center">
+  <em>Every new chat starts blind. Burn through the context, not your quota.</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/stars/taylorscott/dory?style=flat-square&color=111111&label=stars" alt="Stars">
+  <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
+</p>
+
+<p align="center">
+  <strong>Predictable Token Burn &middot; Stateless Interactions &middot; 100% Local Portability &middot; Zero Data Loss</strong><br>
+  <sub>Designed for strict cost-defense in standard Claude Pro web sessions. By moving from continuous chat transcripts to atomic execution and local history extraction, you eliminate exponential context re-parsing overhead entirely.</sub>
+</p>
+
+---
+
+You know the routine. You burn through a context window, switch models, or just close a tab and come back tomorrow. Now you're spending the first ten messages re-explaining your project to an AI that has no idea what you built yesterday.
 
 Dory resolves context bloat, data loss, and platform dependencies by treating hosted LLM sessions as completely volatile, disposable scratchpads. By maintaining a lean, local architectural ledger alongside a deconstructed artifact vault, you can hard-reset chat sessions continuously—minimizing token consumption and protecting your code history.
 
-## System Components
+## Before / after
 
-### 1. The Global Directive Layer (`.dory/agents.md`)
-This file establishes the operational boundaries for the LLM. It forces task decomposition, enforces minimalist code output, and mandates token usage reporting. Copy these directives into your global system prompt or reference them at the start of a session.
-
-### 2. The Micro-Context Bridge (`CHANGELOG.md`)
-A strict, append-only ledger tracking core architectural decisions. It serves as the primary context injector when initializing a blank chat tab.
-
-### 3. The Artifact Vault (`.dory/history/`)
-Isolates complex logic blocks and mid-sized session post-mortems so they are preserved locally when a chat thread is deleted.
+*   **Before:** A massive, single chat thread spanning hours. Every message scales quadratically in token cost as Claude re-parses the entire history, rapidly triggering your tier rate limits and degrading response accuracy. One accidental click deletes the tab, wiping out critical code variations.
+*   **After:** Atomic execution. You open a fresh tab, feed it the lean single-line ledger, execute a single scoped task, and export a clean markdown post-mortem to your local vault. The chat is safely deleted immediately after completion, keeping your token baseline at zero.
 
 ---
 
-## Configuration Protocol
+## Repository Structure
 
-Drop the following blocks directly into your project configuration or initialization prompts.
-
-### Core Behavioral Directives
-*   Prioritize long-term structural intent over shallow literal interpretation of prompts.
-*   Zero conversational wrapping, introductions, or summary padding. Output code blocks immediately.
-*   Execute tasks via explicit phased decomposition: [PLANNING/PROBE] ➔ [IMPLEMENTING] ➔ [TESTING].
-
-### Tactical Engineering Rules
-*   Code Minimalism: No redundant try-catch blocks, no needless helper abstractions, no obvious comments. Keep logic flat and direct.
-*   Terminal Aesthetics: Use left/right justification (`.ljust()`), self-flushing prints (`flush=True`), and single-line progress indicators. Avoid verbose log clutter.
-*   Verification Loop: Prioritize terminal probe scripts (`head`, `ls`, `grep`) to check structural reality before writing code. Avoid assumptions.
-
-### Logging, Quota & Vault Protocols
-*   Maintain CHANGELOG.md as a single-line, append-only file using the formula: Action + Component + Reason. Moderate length is acceptable for deep architectural rationale. Exclude transient fixes.
-*   Post-session, generate a mandatory mid-sized text summary (.md). Pair it with 0 to N raw code snapshots (.ext) tracking notable logic variations.
-*   Resource Metrics: Append the absolute cumulative session token estimate and the current turn token weight to the absolute end of every response.
-
----
-
-## The Workflow Cycle
-
-1. **Initialize:** Open a fresh chat tab. Drop in `CHANGELOG.md` and `.dory/agents.md`.
-2. **Probe:** The model executes the `[PLANNING/PROBE]` phase, outputting minimal shell commands to verify directory state or file schemas.
-3. **Execute:** The model delivers flat, un-wrapped code. You verify it locally via the provided `[TESTING]` instructions.
-4. **Monitor:** Track the absolute token weight reported at the bottom of the responses to watch for context accumulation.
-5. **Persist & Clear:** Before the context window bloats, prompt the model to generate the mid-sized `.md` summary and raw code variants for your vault. Append the single-line entry to `CHANGELOG.md`, commit the files to git, and clear or delete the chat thread.
+```text
+your-project-root/
+├── .dory/
+│   ├── agents.md             # Global directives, behavioral rules, and tactical engineering rules
+│   └── history/              # Vault for mid-sized chat summaries and historic code snippets
+│       ├── 20260624_auth.md  # Session post-mortem (mandatory)
+│       └── 20260624_auth.py  # 0 to N raw code snapshots / reference variations
+└── CHANGELOG.md              # Lean, single-line, append-only architectural decision ledger
