@@ -5,8 +5,6 @@
   </picture>
 </p>
 
-[https://raw.githubusercontent.com/tjqscott/dory/refs/heads/main/images/dory.png](https://raw.githubusercontent.com/tjqscott/dory/refs/heads/main/images/dory.png)
-
 <h1 align="center">Dory</h1>
 
 <p align="center">
