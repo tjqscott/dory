@@ -1,7 +1,4 @@
-<center>  
-  ![Dory](images/dory.png)
-</center>
-
+![Dory](images/dory.png)
 <h1 align="center">Dory</h1>
 
 <p align="center">
