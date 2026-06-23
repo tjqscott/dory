@@ -1,4 +1,7 @@
-![Dory](images/dory.png)
+<p align="center">
+  <img src="images/dory.png" alt="Dory" height="300">
+</p>
+
 <h1 align="center">Dory</h1>
 
 <p align="center">
