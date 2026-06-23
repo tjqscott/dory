@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/taylorscott/dory?style=flat-square&color=111111&label=stars" alt="Stars">
+  <img src="https://img.shields.io/github/stars/tjqscott/dory?style=flat-square&color=111111&label=stars" alt="Stars">
   <img src="https://img.shields.io/badge/release-v2.0.0-111111?style=flat-square" alt="Release 2.0.0">
   <img src="https://img.shields.io/badge/works%20with-Claude%20%7C%20ChatGPT%20%7C%20Local-111111?style=flat-square" alt="Works with Claude, ChatGPT, Local LLMs">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
