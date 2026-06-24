@@ -17,8 +17,6 @@
 
 ---
 
----
-
 Long, continuous chat threads drain token quotas, dilute context, and tie your project state to ephemeral browser instances.
 
 Dory treats hosted LLM interfaces as disposable tools. By offloading state to your local environment and enforcing atomic sessions, you maintain a low baseline token usage and secure your codebase history.
