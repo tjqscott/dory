@@ -17,18 +17,20 @@
 
 ---
 
-Long, continuous chat threads are the enemy of productivity. They drain your token quota, dilute context, and leave your hard-won project state vulnerable to a single misclick.
+---
 
-**Dory** turns hosted LLM interfaces into disposable, high-performance tools. By offloading state to your local environment and enforcing atomic, single-feature sessions, you keep your costs low and your workflow bulletproof.
+Long, continuous chat threads drain token quotas, dilute context, and tie your project state to ephemeral browser instances.
+
+Dory treats hosted LLM interfaces as disposable tools. By offloading state to your local environment and enforcing atomic sessions, you maintain a low baseline token usage and secure your codebase history.
 
 ---
 
-### 🧠 The Strategy
+### 🧠 Strategy
 
 | Traditional Sessions | Dory Atomic Sessions |
 | --- | --- |
 | **Bloated:** History re-parsed every turn. | **Lean:** Only active task state loaded. |
-| **Vulnerable:** Chat deletion loses everything. | **Persistent:** History saved to local vault. |
+| **Volatile:** Chat deletion drops state. | **Persistent:** History saved to local vault. |
 | **Expensive:** Context limits hit fast. | **Efficient:** Baseline token usage constant. |
 
 ---
@@ -40,46 +42,53 @@ Dory integrates directly into your project's version control.
 ```text
 your-project-root/
 ├── .dory/
-│   ├── agents.md             # Operational directives & behavior
-│   └── history/              # Local vault for session summaries & code
+│   ├── agents.md             # Operational directives and behavior
+│   └── history/              # Local vault for session summaries and code
 ├── CHANGELOG.md              # Architectural decision ledger
 
 ```
 
 ---
 
+### 🛠️ Implementation Options
+
+Dory operates as either a manual prompt framework or an automated CLI skill.
+
+* **Pure Prompt (Web UI):** Pass the contents of `.dory/agents.md` and `CHANGELOG.md` in your initial message to establish operational boundaries.
+* **CLI Skill:** Configure `.clauderc` (or an equivalent tool configuration) to automatically inject these directives into the system prompt for local agents.
+
+---
+
 ### ⚙️ Operational Directives (`agents.md`)
 
-Dory relies on three pillars of configuration to maintain speed and precision.
+Dory relies on configuration to maintain execution speed and precision.
 
-#### **I. Core Behaviors**
+#### I. Core Behaviors
 
-* **Intent-First:** The model prioritizes your structural goals over literal text.
-* **Zero-Padding:** No fluff, no intros, no conversational wrapping. Just code.
-* **Decomposition:** Mandatory `[PLANNING]` ➔ `[IMPLEMENTING]` ➔ `[TESTING]` flow.
+* **Intent-First:** The model prioritizes structural goals over literal text.
+* **Zero-Padding:** No conversational wrapping. Output code blocks directly.
+* **Decomposition:** Explicit `[PLANNING]` ➔ `[IMPLEMENTING]` ➔ `[TESTING]` flow for complex tasks. This is optional for small or isolated requests.
 
-#### **II. Tactical Engineering**
+#### II. Tactical Engineering
 
-* **Minimalism:** Clean, flat code—no defensive boilerplate or redundant abstractions.
-* **Terminal Aesthetics:** Uses `ljust` and `flush=True` for clean, real-time feedback.
-* **Verification:** Probes the directory (via `ls`, `grep`) before acting. No assumptions.
+* **Minimalism:** Clean, flat code. No defensive boilerplate or redundant abstractions.
+* **Terminal Aesthetics:** Structured formatting for clean and real-time output feedback.
+* **Verification:** Probes the directory and verifies state before acting. Avoids assumptions.
 
-#### **III. Vault Protocols**
+#### III. Vault Protocols
 
 * **Append-Only Ledger:** High-density, single-line decision tracking.
-* **Artifact Vaulting:** Sessions conclude with a mandatory `.md` summary and clean code snippets saved locally.
-* **Token Gating:** Every response includes a token metric to signal when it’s time to reset the chat.
+* **Artifact Vaulting:** Sessions conclude with a `.md` summary and clean code snippets saved locally.
+* **Token Gating:** Every response includes a token metric to signal context saturation.
 
 ---
 
-### 🚀 The Workflow Cycle
+### 🚀 Workflow Cycle
 
-1. **Initialize:** Open a fresh chat. Load your `CHANGELOG.md` and `.dory/agents.md`.
-2. **Probe:** The model inspects your local environment first.
-3. **Execute:** The model delivers direct, polished code.
-4. **Monitor:** Watch the token metrics; stay within your quota.
-5. **Persist & Clear:** Save your summary to the vault, append your decision to the log, and kill the chat thread.
-
----
+1. **Initialize:** Open a fresh chat. Load `CHANGELOG.md` and `.dory/agents.md`.
+2. **Probe:** The model inspects the local environment.
+3. **Execute:** The model delivers direct code.
+4. **Monitor:** Track the token metrics to manage quota limits.
+5. **Persist and Clear:** Save the summary to the vault, append the decision to the log, and terminate the session.
 
 *He says nothing. He writes one line. It works.*
