@@ -65,7 +65,7 @@ Dory relies on configuration to maintain execution speed and precision.
 
 * **Intent-First:** The model prioritizes structural goals over literal text.
 * **Zero-Padding:** No conversational wrapping. Output code blocks directly.
-* **Decomposition:** Explicit `[PLANNING]` ➔ `[IMPLEMENTING]` ➔ `[TESTING]` flow for complex tasks. This is optional for small or isolated requests.
+* **Decomposition:** Explicit `[PLANNING]` ➔ `[IMPLEMENTING]` ➔ `[TESTING]` ➔ `[ITERATING]` flow for complex tasks. This is optional for small or isolated requests.
 
 #### II. Tactical Engineering
 
