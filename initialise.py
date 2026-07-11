@@ -66,14 +66,14 @@ def bootstrap():
         print(f"[skip] {DORY_DIR} already exists — not touching history/ or agents.md")
     else:
         os.makedirs(HISTORY_DIR)
-        with open(AGENTS_MD, "w") as f:
+        with open(AGENTS_MD, "w", encoding="utf-8") as f:
             f.write(DEFAULT_AGENTS_MD)
         created += [DORY_DIR, HISTORY_DIR, AGENTS_MD]
 
     if os.path.isfile(CHANGELOG):
         print(f"[skip] {CHANGELOG} already exists — not overwriting")
     else:
-        with open(CHANGELOG, "w") as f:
+        with open(CHANGELOG, "w", encoding="utf-8") as f:
             f.write("# Changelog\n\n")
         created.append(CHANGELOG)
 
@@ -99,7 +99,7 @@ def build_tree(start, prefix=""):
 
 def write_tree_file():
     lines = [os.path.basename(ROOT) or ROOT] + build_tree(ROOT)
-    with open(TREE_FILE, "w") as f:
+    with open(TREE_FILE, "w", encoding="utf-8") as f:
         f.write("# Repository Tree\n\n")
         f.write(f"Generated: {now()}\n")
         f.write("Ignored: " + ", ".join(sorted(IGNORE_DIRS)) + " (and any dotfiles)\n\n")
@@ -128,7 +128,7 @@ def find_probe_targets():
 
 def head_lines(path):
     lines = []
-    with open(path, "r", errors="replace") as f:
+    with open(path, "r", encoding="utf-8", errors="replace") as f:
         for i, raw in enumerate(f):
             if i >= HEAD_LINES:
                 break
@@ -141,7 +141,7 @@ def head_lines(path):
 
 def write_probe_file():
     targets, skipped = find_probe_targets()
-    with open(PROBE_FILE, "w") as f:
+    with open(PROBE_FILE, "w", encoding="utf-8") as f:
         f.write("# Data File Probes\n\n")
         f.write(f"Generated: {now()}\n")
         f.write(f"First {HEAD_LINES} lines of up to {MAX_PROBE_FILES} .csv/.json files.\n\n")
