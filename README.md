@@ -90,3 +90,4 @@ Dory relies on configuration to maintain execution speed and precision.
 5. **Persist and Clear:** Save the summary to the vault, append the decision to the log, and terminate the session.
 
 *He says nothing. He writes one line. It works.*
+
