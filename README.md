@@ -37,7 +37,7 @@ It comes in two editions, one for each way you work with a model.
 3. Work. At the end, the model emits posts.
 4. Paste its whole reply back, click **Add posts**, then **Save**.
 
-Posts are append-only. A later post supersedes earlier ones with `replaces: 4` or `replaces: all`, so a small model can add notes and a strong one can rewrite a page, and nothing written is lost. The page makes no network calls.
+Posts are append-only. A later post supersedes earlier ones with `replaces: 4` or `replaces: all`, so a small model only ever has to append, a strong one can rewrite a page, and nothing written is lost. The page makes no network calls.
 
 Two stores are under test. [`browser/markdown-store/`](browser/markdown-store/) keeps the posts in a `DORY.md` that renders on GitHub instead. [docs/v3.md](docs/v3.md) has the comparison.
 
