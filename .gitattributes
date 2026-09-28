@@ -1,2 +1,6 @@
 # Shell scripts run under sh on every OS, including Git Bash on Windows.
 *.sh text eol=lf
+
+# The browser pages are self-contained HTML; keep them out of the language stats so
+# the repo reads as the Python it mostly maintains.
+browser/** linguist-detectable=false
