@@ -61,7 +61,7 @@ Two stores are under test. [`browser/markdown-store/`](browser/markdown-store/) 
 
 **Codex.** Codex reads `AGENTS.md`, so copy it into your project root. The skills use the `SKILL.md` format.
 
-**Obsidian.** Link `wiki/` into your vault to see every project's wiki in one graph. On Windows, `mklink /J` needs no admin. [graph-spawn](https://github.com/tjqscott/obsidian-graph-spawn) keeps each project as its own cluster.
+**Obsidian.** Link `wiki/` into your vault to see every project's wiki in one graph. On Windows, `mklink /J` needs no admin. [Graph Spawn](https://github.com/tjqscott/obsidian-graph-spawn) keeps each project as its own cluster. Install it from Obsidian's Community plugins.
 
 ---
 
