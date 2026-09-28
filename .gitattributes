@@ -1,0 +1,2 @@
+# Shell scripts run under sh on every OS, including Git Bash on Windows.
+*.sh text eol=lf

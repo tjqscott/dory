@@ -1,0 +1,13 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "sh \"${CLAUDE_PLUGIN_ROOT}/code/hooks/py.sh\" \"${CLAUDE_PLUGIN_ROOT}/code/hooks/session_start.py\"" }] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [{ "type": "command", "command": "sh \"${CLAUDE_PLUGIN_ROOT}/code/hooks/py.sh\" \"${CLAUDE_PLUGIN_ROOT}/code/hooks/prompt_clock.py\"" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "sh \"${CLAUDE_PLUGIN_ROOT}/code/hooks/py.sh\" \"${CLAUDE_PLUGIN_ROOT}/code/hooks/stop_lint.py\"" }] }
+    ]
+  }
+}
