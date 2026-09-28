@@ -1,0 +1,18 @@
+{
+  "name": "dory",
+  "owner": { "name": "tjqscott" },
+  "metadata": {
+    "description": "Dory: context management for LLM sessions, in the browser and in coding agents.",
+    "version": "3.0.0"
+  },
+  "plugins": [
+    {
+      "name": "dory",
+      "source": "./",
+      "description": "Memory for coding agents: a strict-tree wiki, a findings ledger, a taskboard and usage-aware long runs, enforced by hooks.",
+      "version": "3.0.0",
+      "author": { "name": "tjqscott" },
+      "category": "workflow"
+    }
+  ]
+}

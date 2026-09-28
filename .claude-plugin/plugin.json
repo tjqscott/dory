@@ -1,0 +1,12 @@
+{
+  "name": "dory",
+  "description": "Memory for coding agents: a strict-tree wiki, a findings ledger, a taskboard and usage-aware long runs, enforced by hooks.",
+  "version": "3.0.0",
+  "author": { "name": "tjqscott" },
+  "homepage": "https://github.com/tjqscott/dory",
+  "repository": "https://github.com/tjqscott/dory",
+  "license": "MIT",
+  "keywords": ["memory", "wiki", "context", "directives", "agents-md", "usage-limits"],
+  "skills": ["./code/skills/"],
+  "hooks": "./code/hooks/hooks.json"
+}
