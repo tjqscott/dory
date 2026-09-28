@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dory</title>
+<style>
+  :root { --bg: #fff; --fg: #111; --dim: #666; --line: #ddd; --code: #f4f4f4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111; --fg: #eee; --dim: #999; --line: #333; --code: #1c1c1c; }
+  }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; max-width: 760px; margin: 0 auto; padding: 16px; }
+  header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; }
+  #status, small { color: var(--dim); font-size: 13px; }
+  #paste { width: 100%; height: 120px; box-sizing: border-box; background: var(--code); color: var(--fg); border: 1px solid var(--line); font: 13px/1.4 monospace; padding: 8px; }
+  button { background: var(--fg); color: var(--bg); border: 0; padding: 6px 14px; margin: 8px 8px 0 0; cursor: pointer; }
+  #faults { border: 1px solid var(--fg); padding: 8px; white-space: pre-wrap; font-size: 13px; }
+  #view section { border-top: 1px solid var(--line); margin-top: 24px; }
+  #view article { margin: 16px 0; }
+  #view h3 { margin: 0; }
+  pre { background: var(--code); padding: 8px; overflow-x: auto; }
+  code { background: var(--code); font-size: 13px; }
+</style>
+</head>
+<body>
+<header><h1>Dory</h1><span id="status"></span></header>
+<section>
+  <button id="open">Open DORY.md</button><button id="copy">Copy context</button><button id="folder">Read project folder</button><small id="size"></small>
+  <label id="project-label" hidden><small><input type="checkbox" id="use-project" checked> include project files</small></label>
+</section>
+<section>
+  <textarea id="paste" placeholder="Paste the model's whole response here"></textarea>
+  <button id="add">Add posts</button><button id="save">Save</button>
+  <pre id="faults" hidden></pre>
+</section>
+<main id="view"></main>
+<script>
+const OPEN = /^\s*=== dory post ===\s*$/, CLOSE = /^\s*=== end ===\s*$/;
+const KEYS = ['title', 'page', 'replaces', 'path'];
+const PROTECTED = 'directives';
+const FORMAT = `=== dory post ===
+title: <short title>
+page: <lowercase-slug>
+replaces: <post ids separated by commas, or "all"; omit if none>
+path: <file path; omit if none>
+---
+<markdown body>
+=== end ===`;
+const PROTOCOL = `## Saving your work
+
+End the session by emitting each thing worth keeping as a post, in exactly this form:
+
+${FORMAT}
+
+- One subject per post. \`page\` groups posts, as a lowercase slug such as \`auth\` or \`decisions\`.
+- Never edit an old post. To supersede posts, name their ids in \`replaces\`; use \`replaces: all\` to rewrite a whole page.
+- Put code in fenced blocks and set \`path\` to the file it belongs to.
+- Never post to the \`directives\` page.`;
+
+const $ = s => document.querySelector(s);
+let dirty = false;
+
+// Storage: posts live in a DORY.md the page opens and writes back.
+let text = null, handle = null;
+const BLOCK = /<!-- dory:post (\{[^\n]*?\}) -->\n### ([^\n]*)\n([\s\S]*?)\n<!-- \/dory:post -->/g;
+
+function readPosts() {
+  if (text === null) return [];
+  return [...text.matchAll(BLOCK)].map(m => ({ replaces: '', path: '', ...JSON.parse(m[1]), title: m[2], body: m[3].replace(/^\n+|\n+$/g, '') }));
+}
+
+function appendPosts(posts) {
+  for (const p of posts) {
+    const meta = { id: p.id, page: p.page, date: p.date };
+    if (p.replaces) meta.replaces = p.replaces;
+    if (p.path) meta.path = p.path;
+    text = text.replace(/\n*$/, '\n') + `\n<!-- dory:post ${JSON.stringify(meta)} -->\n### ${p.title}\n\n${p.body}\n\n<!-- /dory:post -->\n`;
+  }
+}
+
+async function open() {
+  if (window.showOpenFilePicker) {
+    try {
+      [handle] = await showOpenFilePicker({ types: [{ description: 'Dory', accept: { 'text/markdown': ['.md'] } }] });
+      return load(await (await handle.getFile()).text(), handle.name);
+    } catch (e) {
+      if (e.name === 'AbortError') return status('Open cancelled.');
+    }
+  }
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.md';
+  input.onchange = async () => load(await input.files[0].text(), input.files[0].name);
+  input.click();
+}
+
+function load(src, name) {
+  text = src.replace(/\r\n?/g, '\n');
+  dirty = false;
+  render();
+  status(`Opened ${name}: ${readPosts().length} post(s).${handle ? '' : ' Save will download a copy.'}`);
+}
+
+async function save() {
+  if (text === null) return status('Open a DORY.md first.');
+  if (handle) {
+    try {
+      const w = await handle.createWritable();
+      await w.write(text);
+      await w.close();
+      dirty = false;
+      return status(`Saved in place to ${handle.name}.`);
+    } catch (e) {
+      status(`In-place save failed (${e.name}). Downloaded a copy instead.`);
+    }
+  }
+  download(text, 'DORY.md', 'text/markdown');
+  if (!handle) status('Downloaded DORY.md. Move it over the old file.');
+}
+
+// Everything below is shared with the single-file prototype.
+function download(text, name, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  dirty = false;
+}
+
+function parseBlock(lines, ids) {
+  const split = lines.findIndex(l => l.trim() === '---');
+  if (split < 0) return { fault: 'no "---" line between the header and the body' };
+  const head = {};
+  for (const l of lines.slice(0, split)) {
+    if (!l.trim()) continue;
+    const m = l.match(/^\s*([a-z]+)\s*:\s*(.*?)\s*$/);
+    if (!m || !KEYS.includes(m[1])) return { fault: `bad header line "${l.trim()}"` };
+    if (/<!--|-->/.test(m[2])) return { fault: `"${m[1]}:" cannot contain "<!--" or "-->"` };
+    head[m[1]] = m[2];
+  }
+  if (!head.title) return { fault: 'missing "title:"' };
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(head.page || '')) return { fault: '"page:" must be a lowercase slug like "auth" or "data-model"' };
+  if (head.page === PROTECTED) return { fault: 'the directives page is edited by hand, not posted to' };
+  let replaces = (head.replaces || '').toLowerCase();
+  if (replaces && replaces !== 'all') {
+    const want = replaces.split(',').map(s => s.trim().replace(/^#/, ''));
+    const bad = want.filter(s => !/^\d+$/.test(s) || !ids.has(+s));
+    if (bad.length) return { fault: `"replaces:" names unknown post id(s): ${bad.join(', ')}` };
+    replaces = want.join(',');
+  }
+  const body = lines.slice(split + 1).join('\n').replace(/^\n+|\s+$/g, '');
+  if (!body) return { fault: 'empty body' };
+  if (/<!-- \/?dory:post/.test(body)) return { fault: 'body cannot contain a "<!-- dory:post" marker' };
+  return { post: { title: head.title, page: head.page, replaces, path: head.path || '', body } };
+}
+
+function parsePosts(text) {
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const ids = new Set(readPosts().map(p => p.id));
+  const posts = [], faults = [];
+  let i = 0, n = 0;
+  while (i < lines.length) {
+    if (!OPEN.test(lines[i])) { i++; continue; }
+    n++;
+    let end = i + 1;
+    while (end < lines.length && !CLOSE.test(lines[end]) && !OPEN.test(lines[end])) end++;
+    if (end >= lines.length || OPEN.test(lines[end])) {
+      faults.push(`Post ${n}: missing "=== end ===" line`);
+      i = end;
+      continue;
+    }
+    const r = parseBlock(lines.slice(i + 1, end), ids);
+    if (r.fault) faults.push(`Post ${n}: ${r.fault}`); else posts.push(r.post);
+    i = end + 1;
+  }
+  return { posts, faults };
+}
+
+function addPosts() {
+  if (text === null) return status('Open a DORY.md first.');
+  const { posts, faults } = parsePosts($('#paste').value);
+  const box = $('#faults');
+  box.hidden = true;
+  if (faults.length) {
+    box.textContent = `Dory rejected your posts. Emit all of them again, corrected:\n- ${faults.join('\n- ')}\n\nRequired format:\n${FORMAT}`;
+    box.hidden = false;
+    return status('Nothing added. Paste the message below back to the model.');
+  }
+  if (!posts.length) return status('No posts found in that text.');
+  let id = Math.max(0, ...readPosts().map(p => p.id));
+  const date = new Date().toISOString().slice(0, 10);
+  appendPosts(posts.map(p => ({ ...p, id: ++id, date })));
+  $('#paste').value = '';
+  dirty = true;
+  render();
+  status(`Added ${posts.length} post(s). Not saved yet.`);
+}
+
+function livePosts(posts) {
+  const dead = new Set();
+  posts.forEach((p, i) => {
+    if (p.replaces === 'all') posts.slice(0, i).filter(q => q.page === p.page).forEach(q => dead.add(q.id));
+    else if (p.replaces) p.replaces.split(',').forEach(s => dead.add(+s));
+  });
+  return posts.filter(p => !dead.has(p.id));
+}
+
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2">$1</a>');
+}
+
+function md(src) {
+  const lines = src.split('\n'), out = [];
+  const isFence = l => l.match(/^\s*(```+|~~~+)/), isItem = l => /^\s*[-*]\s+/.test(l), isHead = l => l.match(/^(#{1,4})\s+(.*)/);
+  let i = 0;
+  while (i < lines.length) {
+    const l = lines[i], fence = isFence(l), head = isHead(l);
+    if (fence) {
+      const buf = [];
+      for (i++; i < lines.length && !lines[i].trim().startsWith(fence[1]); i++) buf.push(lines[i]);
+      i++;
+      out.push(`<pre><code>${esc(buf.join('\n'))}</code></pre>`);
+    } else if (head) {
+      const n = Math.min(head[1].length + 3, 6);
+      out.push(`<h${n}>${inline(head[2])}</h${n}>`);
+      i++;
+    } else if (isItem(l)) {
+      const items = [];
+      for (; i < lines.length && isItem(lines[i]); i++) items.push(`<li>${inline(lines[i].replace(/^\s*[-*]\s+/, ''))}</li>`);
+      out.push(`<ul>${items.join('')}</ul>`);
+    } else if (!l.trim()) {
+      i++;
+    } else {
+      const para = [lines[i++]];
+      while (i < lines.length && lines[i].trim() && !isFence(lines[i]) && !isItem(lines[i]) && !isHead(lines[i])) para.push(lines[i++]);
+      out.push(`<p>${inline(para.join(' '))}</p>`);
+    }
+  }
+  return out.join('\n');
+}
+
+function pagesOf(live) {
+  const pages = [...new Set(live.map(p => p.page))].filter(p => p !== PROTECTED).sort();
+  return live.some(p => p.page === PROTECTED) ? [PROTECTED, ...pages] : pages;
+}
+
+function render() {
+  const posts = readPosts(), live = livePosts(posts);
+  $('#view').innerHTML = pagesOf(live).map(page => `<section><h2>${page === PROTECTED ? esc(page) : `<label><input type="checkbox" data-page="${esc(page)}" checked> ${esc(page)}</label>`}</h2>${
+    live.filter(p => p.page === page).map(p => `<article><h3>${esc(p.title)}</h3><small>#${p.id} · ${esc(p.date)}${p.path ? ' · ' + esc(p.path) : ''}</small>${md(p.body)}</article>`).join('')
+  }</section>`).join('') + `<p><small>${live.length} live post(s), ${posts.length - live.length} replaced.</small></p>`;
+  showSize();
+}
+
+// Project folder: a tree and a redacted preview of data files, read on request and never saved.
+const IGNORE = new Set(['node_modules', '__pycache__', 'venv', 'dist', 'build']);
+const SENSITIVE = ['.env', 'secret', 'credential', 'password', 'passwd', 'token', 'apikey', 'api_key', 'private_key', 'id_rsa', '.pem'];
+const MAX_TREE = 300, PROBE_FILES = 5, PROBE_LINES = 8, PROBE_WIDTH = 200;
+let project = '';
+
+function tree(paths) {
+  const root = {}, lines = [];
+  for (const p of paths) p.split('/').reduce((node, part) => node[part] ||= {}, root);
+  const walk = (node, prefix) => Object.keys(node).sort().forEach((k, i, all) => {
+    const last = i === all.length - 1;
+    lines.push(prefix + (last ? '└── ' : '├── ') + k);
+    walk(node[k], prefix + (last ? '    ' : '│   '));
+  });
+  walk(root, '');
+  return lines;
+}
+
+async function describe(files) {
+  const name = files[0].webkitRelativePath.split('/')[0];
+  const kept = files
+    .map(f => ({ f, rel: f.webkitRelativePath.split('/').slice(1).join('/') }))
+    .filter(({ rel }) => !rel.split('/').some(s => s.startsWith('.') || IGNORE.has(s)))
+    .sort((a, b) => a.rel.localeCompare(b.rel));
+  const lines = tree(kept.map(k => k.rel));
+  const shown = lines.length > MAX_TREE ? [...lines.slice(0, MAX_TREE), `… ${lines.length - MAX_TREE} more entries`] : lines;
+  const probes = [], skipped = [];
+  for (const { f, rel } of kept.filter(k => /\.(csv|json)$/i.test(k.rel))) {
+    if (SENSITIVE.some(s => f.name.toLowerCase().includes(s))) { skipped.push(rel); continue; }
+    if (probes.length >= PROBE_FILES) continue;
+    const head = (await f.slice(0, 65536).text()).split(/\r?\n/).slice(0, PROBE_LINES);
+    probes.push(`### \`${rel}\`, first ${PROBE_LINES} lines\n\n\`\`\`text\n${head.map(l => l.length > PROBE_WIDTH ? l.slice(0, PROBE_WIDTH) + ' …[truncated]' : l).join('\n')}\n\`\`\``);
+  }
+  return [
+    `## Project files\n\nRead ${new Date().toISOString().slice(0, 10)} from \`${name}\`. Dotfiles and ${[...IGNORE].join(', ')} are left out.`,
+    `\`\`\`text\n${name}\n${shown.join('\n')}\n\`\`\``,
+    ...probes,
+    skipped.length ? `Not previewed, name looks sensitive: ${skipped.map(s => `\`${s}\``).join(', ')}` : '',
+  ].filter(Boolean).join('\n\n');
+}
+
+function readFolder() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.webkitdirectory = true;
+  input.onchange = async () => {
+    if (!input.files.length) return status('That folder is empty.');
+    project = await describe([...input.files]);
+    $('#project-label').hidden = false;
+    showSize();
+    status('Project folder read. Its tree and data previews are in the context; nothing is saved.');
+  };
+  input.click();
+}
+
+function context() {
+  const live = livePosts(readPosts());
+  const picked = new Set([...document.querySelectorAll('#view input[data-page]:checked')].map(c => c.dataset.page));
+  const post = p => `#### #${p.id} ${p.title}${p.path ? ` (${p.path})` : ''}\n\n${p.body}`;
+  const directives = live.filter(p => p.page === PROTECTED).map(p => p.body).join('\n\n');
+  const wiki = pagesOf(live).filter(pg => picked.has(pg)).map(pg => `### Page: ${pg}\n\n${live.filter(p => p.page === pg).map(post).join('\n\n')}`).join('\n\n');
+  const files = project && $('#use-project').checked ? `\n${project}\n` : '';
+  return `# Dory context, ${new Date().toISOString().slice(0, 10)}\n\nYou are continuing work on a project. Its memory is below.\n\n## Directives\n\n${directives}\n\n${PROTOCOL}\n${files}\n## Wiki\n\n${wiki || '_Empty._'}\n`;
+}
+
+function showSize() {
+  const n = context().length;
+  $('#size').textContent = ` ${n.toLocaleString()} characters, about ${Math.round(n / 4).toLocaleString()} tokens`;
+}
+
+async function copy() {
+  const text = context();
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const t = document.createElement('textarea');
+    t.value = text;
+    document.body.append(t);
+    t.select();
+    document.execCommand('copy');
+    t.remove();
+  }
+  status('Context copied. Paste it as the first message of a fresh chat.');
+}
+
+function status(msg) { $('#status').textContent = msg; }
+
+$('#add').onclick = addPosts;
+$('#save').onclick = save;
+$('#copy').onclick = copy;
+$('#open').onclick = open;
+$('#folder').onclick = readFolder;
+$('#use-project').onchange = showSize;
+$('#view').onchange = showSize;
+window.onbeforeunload = e => { if (dirty) e.preventDefault(); };
+render();
+status('Open your DORY.md to start.');
+</script>
+</body>
+</html>
