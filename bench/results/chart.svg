@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 590" font-family="system-ui, sans-serif">
+<rect width="900" height="590" fill="#111"/>
+<text x="70" y="34" fill="#eee" font-size="20" font-weight="700">Notes correct after one retry</text>
+<rect x="480" y="20" width="14" height="14" fill="#f2a7c3"/><text x="500" y="32" fill="#bbb" font-size="14">rewrite</text>
+<rect x="610" y="20" width="14" height="14" fill="#8a8f98"/><text x="630" y="32" fill="#bbb" font-size="14">patch</text>
+<rect x="740" y="20" width="14" height="14" fill="#9fd3ea"/><text x="760" y="32" fill="#bbb" font-size="14">append</text>
+<text x="70" y="76" fill="#eee" font-size="15" font-weight="600">gemma4:12b-it-qat</text>
+<line x1="70" y1="264" x2="870" y2="264" stroke="#333"/>
+<rect x="110" y="121.5" width="54" height="142.5" fill="#f2a7c3"/>
+<text x="137" y="115.5" fill="#eee" font-size="13" text-anchor="middle">95%</text>
+<rect x="172" y="144.0" width="54" height="120.0" fill="#8a8f98"/>
+<text x="199" y="138.0" fill="#eee" font-size="13" text-anchor="middle">80%</text>
+<rect x="234" y="121.5" width="54" height="142.5" fill="#9fd3ea"/>
+<text x="261" y="115.5" fill="#eee" font-size="13" text-anchor="middle">95%</text>
+<text x="199" y="284" fill="#888" font-size="13" text-anchor="middle">20 facts</text>
+<rect x="370" y="114.0" width="54" height="150.0" fill="#f2a7c3"/>
+<text x="397" y="108.0" fill="#eee" font-size="13" text-anchor="middle">100%</text>
+<rect x="432" y="114.0" width="54" height="150.0" fill="#8a8f98"/>
+<text x="459" y="108.0" fill="#eee" font-size="13" text-anchor="middle">100%</text>
+<rect x="494" y="121.5" width="54" height="142.5" fill="#9fd3ea"/>
+<text x="521" y="115.5" fill="#eee" font-size="13" text-anchor="middle">95%</text>
+<text x="459" y="284" fill="#888" font-size="13" text-anchor="middle">60 facts</text>
+<rect x="630" y="114.0" width="54" height="150.0" fill="#f2a7c3"/>
+<text x="657" y="108.0" fill="#eee" font-size="13" text-anchor="middle">100%</text>
+<rect x="692" y="114.0" width="54" height="150.0" fill="#8a8f98"/>
+<text x="719" y="108.0" fill="#eee" font-size="13" text-anchor="middle">100%</text>
+<rect x="754" y="114.0" width="54" height="150.0" fill="#9fd3ea"/>
+<text x="781" y="108.0" fill="#eee" font-size="13" text-anchor="middle">100%</text>
+<text x="719" y="284" fill="#888" font-size="13" text-anchor="middle">150 facts</text>
+<text x="70" y="326" fill="#eee" font-size="15" font-weight="600">qwen3:8b</text>
+<line x1="70" y1="514" x2="870" y2="514" stroke="#333"/>
+<rect x="110" y="401.5" width="54" height="112.5" fill="#f2a7c3"/>
+<text x="137" y="395.5" fill="#eee" font-size="13" text-anchor="middle">75%</text>
+<rect x="172" y="461.5" width="54" height="52.5" fill="#8a8f98"/>
+<text x="199" y="455.5" fill="#eee" font-size="13" text-anchor="middle">35%</text>
+<rect x="234" y="379.0" width="54" height="135.0" fill="#9fd3ea"/>
+<text x="261" y="373.0" fill="#eee" font-size="13" text-anchor="middle">90%</text>
+<text x="199" y="534" fill="#888" font-size="13" text-anchor="middle">20 facts</text>
+<rect x="370" y="439.0" width="54" height="75.0" fill="#f2a7c3"/>
+<text x="397" y="433.0" fill="#eee" font-size="13" text-anchor="middle">50%</text>
+<rect x="432" y="476.5" width="54" height="37.5" fill="#8a8f98"/>
+<text x="459" y="470.5" fill="#eee" font-size="13" text-anchor="middle">25%</text>
+<rect x="494" y="409.0" width="54" height="105.0" fill="#9fd3ea"/>
+<text x="521" y="403.0" fill="#eee" font-size="13" text-anchor="middle">70%</text>
+<text x="459" y="534" fill="#888" font-size="13" text-anchor="middle">60 facts</text>
+<rect x="630" y="461.5" width="54" height="52.5" fill="#f2a7c3"/>
+<text x="657" y="455.5" fill="#eee" font-size="13" text-anchor="middle">35%</text>
+<rect x="692" y="514.0" width="54" height="0.0" fill="#8a8f98"/>
+<text x="719" y="508.0" fill="#eee" font-size="13" text-anchor="middle">0%</text>
+<rect x="754" y="386.5" width="54" height="127.5" fill="#9fd3ea"/>
+<text x="781" y="380.5" fill="#eee" font-size="13" text-anchor="middle">85%</text>
+<text x="719" y="534" fill="#888" font-size="13" text-anchor="middle">150 facts</text>
+</svg>

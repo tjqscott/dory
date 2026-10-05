@@ -1,0 +1,61 @@
+{
+  "repository": "https://github.com/tjqscott/dory",
+  "branch": "bench",
+  "commit": "1b9fa33f2b3accfaa0deeb77f0f6bcd143d5af2f",
+  "benchmark_sha256": "7202f0d31eebbe895a77ecc5ff6d00071858877f01a7af4703d31ed748b590c2",
+  "models": [
+    "qwen3:8b",
+    "gemma4:12b-it-qat"
+  ],
+  "command": "python3 bench/notes_bench.py --models qwen3:8b gemma4:12b-it-qat",
+  "trials_per_model_size_arm": 20,
+  "note_sizes": [
+    20,
+    60,
+    150
+  ],
+  "arms": [
+    "rewrite",
+    "patch",
+    "append"
+  ],
+  "context_tokens_by_note_size": {
+    "20": 8192,
+    "60": 8192,
+    "150": 16384
+  },
+  "max_generated_tokens_by_note_size": {
+    "20": 1600,
+    "60": 4000,
+    "150": 9400
+  },
+  "temperature": "Each model default, as specified by the unchanged benchmark",
+  "thinking": "Not explicitly set, as specified by the unchanged benchmark",
+  "method": "Original benchmark prompts, generation calls and scoring. A wrapper records final response text, prompts, timings and model metadata without changing requests or scores. Models run sequentially.",
+  "metric": "Exact preservation of the notes with one requested line changed; one corrective retry allowed. Formatting differences can fail. This is not a semantic summarisation benchmark.",
+  "hardware": {
+    "chip": "Apple M5 Max",
+    "unified_memory_gb": 128,
+    "gpu_cores": 40
+  },
+  "selection_sources": [
+    "https://www.reddit.com/r/LocalLLaMA/comments/1vmihr7/best_models_14b_and_smaller_as_of_today/",
+    "https://www.reddit.com/r/LocalLLaMA/comments/1uz6388/what_small_models_have_you_guys_been_using/",
+    "https://ollama.com/library/gemma4:12b-it-qat"
+  ],
+  "hardware_scope": "Models selected for a 16 GB consumer machine with modest context. The timing measurements are from this 128 GB M5 Max, not a representative standard laptop.",
+  "interruption": {
+    "reason": "Laptop battery at 1%, discharging",
+    "time": "2026-10-04T16:45:21.494876+00:00",
+    "recovery": "Completed prompts, final responses and token counts are retained in qwen3_8b.responses.jsonl. Replay these through the unchanged scorer, then continue with missing calls."
+  },
+  "resume_command": "python3 bench/results/details/resume.py",
+  "cache_validation": "All 168 recorded Qwen requests match the original benchmark prompts and retry messages.",
+  "completed_utc": "2026-10-04T19:54:58.616953+00:00",
+  "final_verification": {
+    "cases": 360,
+    "requests": 505,
+    "result": "All cached prompts, retry histories, tokens, scores, summaries and chart reproduce exactly with the unchanged benchmark. Model digests are consistent.",
+    "details": "verification.json"
+  }
+}

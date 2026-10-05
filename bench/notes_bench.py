@@ -4,14 +4,17 @@
     python3 bench/notes_bench.py --models qwen3:8b            # run (needs Ollama)
     python3 bench/notes_bench.py --models a b --trials 30
     python3 bench/notes_bench.py --selftest                    # check the scorers, no model
+    python3 bench/notes_bench.py --rescore                     # rebuild scores from recorded replies
 
 Each trial gives the model the same notes and the same change, and asks for it as:
   rewrite  the whole notes file back, with one line changed
   patch    a SEARCH/REPLACE block for that one line
   append   a Dory post that replaces the old fact
 
-A trial passes when the notes end up exactly right. Each arm gets one retry with
-the error it would see in real use. Results land in bench/results/.
+A trial passes when the notes end up saying exactly the right things; markdown
+decoration (bold markers, bullet dashes, a trailing full stop) may differ. Each arm
+gets one retry with the error it would see in real use. Every request and reply is
+recorded in bench/results/, so scores can be rebuilt without a model.
 """
 
 import re
@@ -20,6 +23,7 @@ import json
 import random
 import pathlib
 import argparse
+import datetime
 import urllib.request
 
 OLLAMA = "http://localhost:11434/api/chat"
@@ -106,8 +110,16 @@ def clean(text):
     return (fence.group(1) if fence and len(fence.group(1)) > len(text) / 2 else text).strip()
 
 
+def norm(text_line):
+    """A line's content, without bullet dash, bold markers, case or trailing full stop."""
+    bare = re.sub(r"^\s*[-*]\s+", "", text_line.strip()).replace("**", "")
+    return re.sub(r"\s+", " ", bare).rstrip(".").strip().lower()
+
+
 def same(a, b):
-    return [l.rstrip() for l in a.strip().splitlines()] == [l.rstrip() for l in b.strip().splitlines()]
+    def content(text):
+        return [norm(l) for l in text.strip().splitlines() if l.strip()]
+    return content(a) == content(b)
 
 
 def score(arm, reply, facts, target, new_line):
@@ -139,7 +151,7 @@ def score(arm, reply, facts, target, new_line):
         return False, f'Dory rejected your post: "page:" must be the section name, `{target["module"]}`.'
     if head.get("replaces", "").lstrip("#") != str(target["id"]):
         return False, 'Dory rejected your post: "replaces:" must be the id of the one outdated post.'
-    return (True, "") if m.group(2).strip() == new_line else (False, "Dory rejected your post: the body must be exactly the new line.")
+    return (True, "") if same(m.group(2), new_line) else (False, "Dory rejected your post: the body must be exactly the new line.")
 
 
 def ask(model, messages, n_facts, temperature):
@@ -153,26 +165,65 @@ def ask(model, messages, n_facts, temperature):
     return data["message"]["content"], data.get("eval_count", 0)
 
 
+def slug(model):
+    return re.sub(r"[^A-Za-z0-9.-]", "_", model)
+
+
 def run(model, trials, temperature):
     records, total, done = [], trials * len(SIZES) * len(ARMS), 0
+    log = open(OUT / (slug(model) + ".responses.jsonl"), "w", encoding="utf-8")
+
+    def ask_logged(messages, n):
+        reply, tokens = ask(model, messages, n, temperature)
+        log.write(json.dumps({"model": model, "facts": n, "tokens": tokens, "messages": messages, "reply": reply}) + "\n")
+        log.flush()
+        return reply, tokens
+
     for n in SIZES:
         for t in range(trials):
             facts, target, new_value, reason = make_case(n, random.Random(f"{n}-{t}"))
             new_line = line(target, new_value, reason)
             for arm in ARMS:
                 messages = [{"role": "user", "content": prompts(arm, facts, target, new_line)}]
-                reply, tokens = ask(model, messages, n, temperature)
+                reply, tokens = ask_logged(messages, n)
                 first, error = score(arm, reply, facts, target, new_line)
                 retry = first
                 if not first:
                     messages += [{"role": "assistant", "content": reply}, {"role": "user", "content": error}]
-                    reply, more = ask(model, messages, n, temperature)
+                    reply, more = ask_logged(messages, n)
                     retry, tokens = score(arm, reply, facts, target, new_line)[0], tokens + more
                 records.append({"facts": n, "trial": t, "arm": arm, "first": first, "retry": retry, "tokens": tokens})
                 done += 1
                 print(f"\r{model.ljust(24)} {done}/{total}  {arm.ljust(8)} facts={str(n).ljust(4)}", end="", flush=True)
     print()
     return records
+
+
+def rescore():
+    """Rebuild every model's scores from its recorded replies, with no model running."""
+    for path in sorted(OUT.glob("*.responses.jsonl")):
+        summary_path = path.with_name(path.name.replace(".responses.jsonl", ".json"))
+        rows = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines()]
+        saved = json.loads(summary_path.read_text())
+        cases = {}
+        for n in SIZES:
+            for t in range(saved["trials"]):
+                facts, target, new_value, reason = make_case(n, random.Random(f"{n}-{t}"))
+                new_line = line(target, new_value, reason)
+                for arm in ARMS:
+                    cases[prompts(arm, facts, target, new_line)] = (n, t, arm, facts, target, new_line)
+        trials = {}
+        for r in rows:
+            n, t, arm, facts, target, new_line = cases[r["messages"][0]["content"]]
+            rec = trials.setdefault((n, t, arm), {"facts": n, "trial": t, "arm": arm, "first": False, "retry": False, "tokens": 0})
+            passed = score(arm, r["reply"], facts, target, new_line)[0]
+            if len(r["messages"]) == 1:
+                rec["first"] = passed
+            rec["retry"] = rec["retry"] or passed
+            rec["tokens"] += r["tokens"]
+        saved.update(summary=summarise(list(trials.values())), records=list(trials.values()))
+        summary_path.write_text(json.dumps(saved, indent=1))
+        print(f"{saved['model'].ljust(24)} re-scored {len(rows)} requests, {len(trials)} trials", flush=True)
 
 
 def summarise(records):
@@ -230,6 +281,8 @@ def selftest():
         assert score(arm, "<think>hmm</think>\n" + good[arm], facts, target, new_line)[0], f"{arm}: a reply after thinking failed"
         passed, message = score(arm, bad[arm], facts, target, new_line)
         assert not passed and message, f"{arm}: a wrong reply passed"
+    assert score("append", good["append"].replace("**", "").replace("\n- ", "\n"), facts, target, new_line)[0], "append: plain-text body failed"
+    assert not score("append", good["append"].replace(new_line, line(target, new_value)), facts, target, new_line)[0], "append: a body missing the reason passed"
     assert chart({"model": summarise([{"facts": 20, "arm": a, "first": True, "retry": True, "tokens": 1} for a in ARMS])}).startswith("<svg")
     print("selftest passed: each arm accepts a correct reply and rejects a wrong one")
 
@@ -240,22 +293,34 @@ def main():
     ap.add_argument("--trials", type=int, default=20, help="trials per notes size and arm (default 20)")
     ap.add_argument("--temperature", type=float, help="default: the model's own")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--rescore", action="store_true", help="rebuild scores from recorded replies, no model needed")
     args = ap.parse_args()
     if args.selftest:
         return selftest()
-    if not args.models:
+    if not args.models and not args.rescore:
         ap.error("--models is required")
     OUT.mkdir(exist_ok=True)
-    for model in args.models:
+    if args.rescore:
+        rescore()
+    for model in args.models or []:
         records = run(model, args.trials, args.temperature)
-        (OUT / (re.sub(r"[^A-Za-z0-9.-]", "_", model) + ".json")).write_text(
+        (OUT / (slug(model) + ".json")).write_text(
             json.dumps({"model": model, "trials": args.trials, "temperature": args.temperature,
                         "summary": summarise(records), "records": records}, indent=1))
     results = {}
     for path in sorted(OUT.glob("*.json")):
         saved = json.loads(path.read_text())
-        results[saved["model"]] = saved["summary"]
+        if "summary" in saved:  # run.json holds the hardware and model details, not scores
+            results[saved["model"]] = saved["summary"]
     (OUT / "chart.svg").write_text(chart(results))
+    readme = OUT.parent / "README.md"
+    table = ["| Model | Facts | Method | First try | After one retry | Tokens out |", "|---|---|---|---|---|---|"]
+    table += [f"| {m} | {r['facts']} | {r['arm']} | {r['first']:.0%} | {r['retry']:.0%} | {r['tokens']:,.0f} |"
+              for m, rows in results.items() for r in rows]
+    fenced = re.sub(r"(<!-- gen: notes_bench\.py[^>]*-->\n).*?(\n<!-- /gen -->)",
+                    lambda m: f"<!-- gen: notes_bench.py — {datetime.date.today()} -->\n" + "\n".join(table) + m.group(2),
+                    readme.read_text(encoding="utf-8"), flags=re.S)
+    readme.write_text(fenced, encoding="utf-8", newline="\n")
     print("\n" + "model".ljust(24) + "facts".ljust(7) + "arm".ljust(9) + "first try".ljust(11) + "after retry".ljust(13) + "tokens out")
     for model, rows in results.items():
         for r in rows:
