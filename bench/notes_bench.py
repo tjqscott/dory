@@ -317,8 +317,8 @@ def main():
     table = ["| Model | Facts | Method | First try | After one retry | Tokens out |", "|---|---|---|---|---|---|"]
     table += [f"| {m} | {r['facts']} | {r['arm']} | {r['first']:.0%} | {r['retry']:.0%} | {r['tokens']:,.0f} |"
               for m, rows in results.items() for r in rows]
-    fenced = re.sub(r"(<!-- gen: notes_bench\.py[^>]*-->\n).*?(\n<!-- /gen -->)",
-                    lambda m: f"<!-- gen: notes_bench.py — {datetime.date.today()} -->\n" + "\n".join(table) + m.group(2),
+    fenced = re.sub(r"<!-- gen: notes_bench\.py[^>]*-->\n.*?<!-- /gen -->",
+                    f"<!-- gen: notes_bench.py — {datetime.date.today()} -->\n" + "\n".join(table) + "\n<!-- /gen -->",
                     readme.read_text(encoding="utf-8"), flags=re.S)
     readme.write_text(fenced, encoding="utf-8", newline="\n")
     print("\n" + "model".ljust(24) + "facts".ljust(7) + "arm".ljust(9) + "first try".ljust(11) + "after retry".ljust(13) + "tokens out")
